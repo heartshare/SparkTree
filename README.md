@@ -40,3 +40,14 @@ Spark 能带来什么
     Spark是基于内存计算的大数据并行计算框架，Spark基于内存计算，提高了在大数据环境下数据处理的实时性，同时保证了高容错性和高可伸缩性，允许用户
     将Spark部署在大量廉价硬件之上，形成集群。
 </pre>
+
+BDAS(伯克利大数据分析栈)
+
+![](https://i.imgur.com/LWcJ9JD.png)
+
+![](https://i.imgur.com/iXSxwEG.png)
+
+<pre>
+Master架构
+      Spark架构采用了分布式计算中的Master-Slave模型，Master是对应集中的含有Master进程的节点，Slave是集群中含有Worker进程的节点，Master作为整个集群的控制器，负责整个集群的正常运行; Worker相当于是计算节点，接收主节点命令与运行状态汇报；Executor负责任务的执行;Client作为用户的客户端负责提交应用，Driver负责控制一个应用的执行
+</pre>
