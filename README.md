@@ -84,3 +84,53 @@ RDD
                 5）对key-value对数据类型的RDD的分区器，控制分区策略与分区数
                 6）每个数据分区的地址列表
 </pre>
+
+![](https://i.imgur.com/INXc9mj.png)
+
+<pre>
+RDD与分布式系统内存    
+</pre>
+
+<pre>
+Spark的数据存储
+       Spark数据存储的核心是弹性分布式数据集(RDD),RDD可以被抽象地理解为一个大的数组，但是这个数据是分布在集群上的，逻辑上RDD的每隔分区叫一个Partion.
+       
+       在Spark的执行过程中，RDD经历一个个的Transformatoin算子之后，最后通过action进行触发操作，逻辑上每经历一次变换，就会将RDD转换为一个新的RDD，RDD之间通过Lineage产生依赖关系，RDD会被划分成很多的分区分布到集群的多个节点上中，
+</pre>
+
+![](https://i.imgur.com/Y5jje0w.png)
+
+<pre>
+Spark工作机制
+      Spark的主要模块包括调度和任务分配，I/O模块，通信控制模块，容错模块，Shuffle模块，Spark按照应用，作业，Stage，Task几个层次分别进行调度，采用了经典的FIFO和FAIR等调度算法，在Spark的I/O中，将数据以块为党委进行管理，需要处理的块可以存储在本机内存，磁盘或者集群中的其他机器中，集群中的通信对于命令和状态的传递极为重要，Spark通过AKKA框架进行集群消息通信，分布式系统中的容错性十分重要，Spark通过Lineage和Checkpoint机制进行容错性保证，
+
+      Spark应用提交后经历了一些列的转换，最后成为TASK在每个节点上执行，Spark应用转换：
+              RDD的Action算子触发Job的提交，提交到Spark中的Job生成RDD DAG， 由DAGScheduler转化为Stage DAG,每个Stage中产生相应的TASK集合，TaskScheduler将任务分发到Executor执行，每个任务对应相应的一个数据块，使用用户定义的函数处理数据块。
+
+      Spark的底层执行原理，在Spark的底层实现中，通过RDD进行数据的管理，RDD中有一组分布在不同节点的数据块，当Spark的应用在对这个RDD进行操作时，调度器将包含操作的任务分发到指定的机器上执行，在计算节点通过多线程的方式执行任务。一个操作执行完毕，RDD便转换成另一个RDD，这样，用户的操作依次执行，Spark为了系统的内存不至于快速用完，使用延迟执行的方式执行，即只有操作累积到Action，算子才会触发整个操作序列的执行，中间结果不会单独再重新分配内存，而是在同一个数据块上进行流水线操作。
+
+      对RDD的块管理通过BlockManager完成，BlockManager将数据抽象为数据块，在内存或者磁盘进行存储，如果数据不在本节点，则还可以通过远端节点复制到本机进行计算，
+</pre>
+
+![](https://i.imgur.com/VJKgetP.png)
+
+<pre>
+Spark应用的概念
+      Spark应用是用户提交的应用程序，执行模式有Local， Standalone， YARN, Mesos， 根据Spark Application的Driver Program是否在集群中运行，Spark应用的运行方式又可以分为Cluster模式，Client模式
+      1）Application 用户自定义的Spark程序，用户提交后，Spark为APP分配资源，将程序转换并执行
+      2）Driver Program： 运行Application的main()函数并创建SparkContext.
+      3) RDD Graph RDD是Spark的核心结构，可以通过一系列算子进行操作，当RDD遇到ACTION算子时，将之前的所有算子形成一个有向无环图DAG，也就是途中的RDD GRAPH，再在Spark中转换为JOB,提交到集群执行，一个APP中可以包含多个JOB。
+      5）JOB 一个RDD GRAPH触发的作业，往往由Spark Action算子触发，在SparkContext中通过runJob方法向Spark提交Job
+      6）Stage 每个Job会根据RDD的依赖关系被切分很多Stage，每个Stage中包含一组相同的Task，这一组Task也叫TaskSet
+      7) Task 一个分区对应一个Task，Task执行RDD总对应Stage中包含的算子，Task被封装好后放入Executor的线程池中执行。
+</pre>
+
+![](https://i.imgur.com/UjowBZg.png)
+
+<pre>
+应用的提交与执行方式
+     应用的提交包含两种方式
+          1）Driver进行运行在客户端，对应用进行管理监控
+          2）主节点指定某个Worker节点启动Driver，负责整个应用的监控
+     Driver进程是应用的主控进程，负责应用的解析，切分Stage并调度 Task到Executor执行，包含DAGScheduler等重要对象，
+</pre>
